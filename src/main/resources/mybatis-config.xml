@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <properties resource="dbconfig.properties"/>
+    
+    <settings>
+        <!--开启二级缓存-->
+        <setting name="cacheEnabled" value="true"/>
+    </settings>
+
+    <typeHandlers>
+        <!--配置全局的类型转换器
+            handler:类型转换器
+            javaType:对那个类型进行转换
+        -->
+        <typeHandler handler="com.mapper.typehandler.AddressTypeHandler"
+                     javaType="com.mapper.pojo.Address"/>
+        <!--配置枚举类型转换器
+        org.apache.ibatis.type.EnumOrdinalTypeHandler:保存的是索引值
+        org.apache.ibatis.type.EnumTypeHandler:保存的是枚举名字
+        -->
+        <typeHandler handler="org.apache.ibatis.type.EnumOrdinalTypeHandler"
+                     javaType="com.mapper.pojo.EmpState"/>
+    </typeHandlers>
+
+    <environments default="development">
+        <!--测试环境-->
+        <environment id="test">
+            <!--事务管理器-->
+            <transactionManager type="JDBC"/>
+            <!--POOLED 使用数据库连接池-->
+            <dataSource type="POOLED">
+                <property name="driver" value="${orcl.driver}"/>
+                <property name="url" value="${orcl.url}"/>
+                <property name="username" value="${orcl.username}"/>
+                <property name="password" value="${orcl.password}"/>
+            </dataSource>
+        </environment>
+
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+    
+    <mappers>
+        <package name="org.generator.dao"/><!--批量引用-->
+    </mappers>
+
+</configuration>

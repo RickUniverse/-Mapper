@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+                           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+                           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+                           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+    <!--配置SpringIOC自动扫描的包
+        Spring管理所有的业务逻辑组件。。。
+    -->
+    <context:component-scan base-package="com.mapper">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!--导入配置-->
+    <context:property-placeholder location="classpath:dbconfig.properties"/>
+
+    <!--使用Druid数据库连接池-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          init-method="init" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+    <!--Oracle-->
+    <!--<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          init-method="init" destroy-method="close">
+        <property name="driverClassName" value="${orcl.driver}"/>
+        <property name="username" value="${orcl.username}"/>
+        <property name="url" value="${orcl.url}"/>
+        <property name="password" value="${orcl.password}"/>
+    </bean>-->
+
+    <!-- Spring事务管理器 -->
+    <bean id="transactionManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--开启基于注解的事务-->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <!--
+        整合MyBatis
+            目的：1，spring管理所有组件，mapper的实现类
+                    service==>Dao  @Autowired ：自动注入mapper
+                 2,spring用来管理事务，spring声明事务
+        FactoryBean的使用
+        MyBatis:org.mybatis.spring.SqlSessionFactoryBean
+        MyBatisPlus:com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean
+
+    -->
+    <bean id="sqlSessionFactoryBean"
+          class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <!--configLocation指定全局配置文件的路径-->
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <!--mapperLocations：指定mapperxml文件的路径-->
+        <!--<property name="mapperLocations" value="classpath:org/mybatisplus/mapper/*.xml"/>-->
+        <!--别名处理-->
+        <property name="typeAliasesPackage" value="com.mapper.pojo"/>
+
+    </bean>
+
+
+
+    <!--设置一个可以批量删除的sqlSession需要使用时直接使用@Autowrite注解注入-->
+   <!-- <bean id="sqlSessionBatch"
+          class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg name="sqlSessionFactory" ref="sqlSessionFactoryBean"/>
+        <constructor-arg name="executorType" value="BATCH"/>
+    </bean>-->
+
+
+
+    <!--扫描所有的mapper接口的实现，让这些mapper能被自动注入-->
+    <!-- DAO接口所在包名，Spring会自动查找其下的类 -->
+    <!--
+        <mybatis-spring:scan base-package="org.mybatis.dao"/>
+
+        整合mapper
+        原始mybatis:org.mybatis.spring.mapper.MapperScannerConfigurer
+        mapper: tk.mybatis.spring.mapper.MapperScannerConfigurer
+    -->
+    <bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.mapper.dao"/>
+        <!--<property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryBean"></property>-->
+
+        <!--配置MyMapper
+            mappers:我自己使用的映射
+            enumAsSimpleType:开启枚举处理
+
+            #：表示注释
+        -->
+        <property name="properties">
+            <value>
+                mappers=com.mapper.mymapper.MyMapper
+                #enumAsSimpleType=true
+            </value>
+        </property>
+    </bean>
+
+</beans>
